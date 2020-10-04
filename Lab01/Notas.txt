@@ -1,0 +1,4 @@
+CIFRADO: Substitucion monoalfabetica
+        Consejos: Mirar frecuencia de letras en ingles)
+ESCITALO: Transposicion (escrito por filas y leido por columnas o viceversa)
+        Consejos: Mirar frecuencia de digrafos, trigrafos
