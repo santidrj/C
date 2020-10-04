@@ -1,3 +1,3 @@
-# C
+# Cryptography - FIB
 
-Repository for the laboratiry practises of Criptography - FIB
+Laboratory practises of Cryptography in Facultat d'Informàtica de Barcelona
