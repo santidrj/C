@@ -1,6 +1,6 @@
 # %%
 import numpy as np
-
+import time
 
 def GF_product_p(a, b):
     """Realiza el producto de dos elementos en el cuerpo utilizando la definición en términos polinómicos.
@@ -12,7 +12,7 @@ def GF_product_p(a, b):
     Returns:
     integer: Un elemento del cuerpo representado por un enter entre 0 i 255.
     """
-
+    
     num_2 = np.binary_repr(b)
     partial_results = [0] * len(num_2)
     partial_results[0] = a
@@ -35,6 +35,7 @@ def GF_product_p(a, b):
     for i, bit in enumerate(num_2[1:], 1):
         if bit == '1':
             result = result ^ partial_results[grade - i]
+            
     return result
 
 
@@ -76,6 +77,7 @@ def GF_tables():
 
     return t_exp, t_log
 
+t_exp, t_log = GF_tables()
 
 def GF_product_t(a, b):
     """Realiza el producto de dos elementos del cuerpo utilizando las tablas exponencial y logaritmo.
@@ -87,8 +89,6 @@ def GF_product_t(a, b):
     Returns:
         integer: Un elemento del cuerpo representado por un entero entre 0 i 255 que es el producto en el cuerpo de a i b.
     """
-
-    t_exp, t_log = GF_tables()
 
     prod_i = (t_log[a] + t_log[b]) % 255
     prod = t_exp[prod_i]
@@ -107,17 +107,21 @@ def GF_invers(a):
 
     if a == 0:
         return 0
-    t_exp, t_log = GF_tables()
+    # t_exp, t_log = GF_tables()
     return t_exp[255 - t_log[a]]
 
-    # %%
-print(GF_product_p(131, 87))
-print(GF_product_t(131, 87))
-
 # %%
-exp, log = GF_tables()
+a = 0x82
+v = [0x2B, 0x02, 0x03, 0x09, 0x0B, 0x0D, 0x0E]
+for b in v:
+    p_init_time = time.time()
+    GF_product_p(a, b)
+    p_time = (time.time() - p_init_time) * 1000
+    t_init_time = time.time()
+    GF_product_t(a, b)
+    t_time = (time.time() - t_init_time) * 1000
+    print('Execution time of GF_product_p({},{}): {:.3}'.format(a, b, p_time))
+    print('Execution time of GF_product_t({},{}): {:.3}\n'.format(a, b, t_time))
+
 # %%
 GF_product_p(145, GF_invers(145))
-
-# %%
-GF_invers(1)
