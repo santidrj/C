@@ -113,15 +113,23 @@ def GF_invers(a):
 # %%
 a = 0x82
 v = [0x2B, 0x02, 0x03, 0x09, 0x0B, 0x0D, 0x0E]
+n = 1000
 for b in v:
-    p_init_time = time.time()
-    GF_product_p(a, b)
-    p_time = (time.time() - p_init_time) * 1000
-    t_init_time = time.time()
-    GF_product_t(a, b)
-    t_time = (time.time() - t_init_time) * 1000
-    print('Execution time of GF_product_p({},{}): {:.3}'.format(a, b, p_time))
-    print('Execution time of GF_product_t({},{}): {:.3}\n'.format(a, b, t_time))
+    total_p_time = 0
+    total_t_time = 0    
+    p_time = 0
+    t_time = 0
+    for i in range(n):
+        p_init_time = time.time_ns()
+        GF_product_p(a, b)
+        p_time += (time.time_ns() - p_init_time)
+        t_init_time = time.time_ns()
+        GF_product_t(a, b)
+        t_time += (time.time_ns() - t_init_time)
+    total_p_time = p_time / n
+    total_t_time = t_time / n
+    print('Execution time of GF_product_p({},{}): {}'.format(a, b, total_p_time))
+    print('Execution time of GF_product_t({},{}): {}\n'.format(a, b, total_t_time))
 
 # %%
 GF_product_p(145, GF_invers(145))
