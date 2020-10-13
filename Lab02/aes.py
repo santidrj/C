@@ -5,7 +5,7 @@ https://github.com/bozhu/AES-Python . PKCS#7 padding, CBC mode, PKBDF2, HMAC,
 byte array and string support added by BoppreH at https://github.com/boppreh/aes. 
 Other block modes contributed by @righthandabacus.
 """
-
+import random
 
 s_box = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -236,7 +236,9 @@ class AES:
         shift_rows(plain_state)
         add_round_key(plain_state, self._key_matrices[-1])
     
-    def encrypt_block_ident(self, plaintext):
+        return matrix2bytes(plain_state)
+    
+    def encrypt_block_sub_bytes_ident(self, plaintext):
         """
         Encrypts a single block of 16 byte long plaintext. With the sub_bytes as the identity.
         """
@@ -247,13 +249,50 @@ class AES:
         add_round_key(plain_state, self._key_matrices[0])
 
         for i in range(1, self.n_rounds):
-            # sub_bytes(plain_state)
             shift_rows(plain_state)
             mix_columns(plain_state)
             add_round_key(plain_state, self._key_matrices[i])
 
+        shift_rows(plain_state)
+        add_round_key(plain_state, self._key_matrices[-1])
+    
+    def encrypt_block_mix_columns_ident(self, plaintext):
+        """
+        Encrypts a single block of 16 byte long plaintext. With the mix_columns as the identity.
+        """
+        assert len(plaintext) == 16
+
+        plain_state = bytes2matrix(plaintext)
+
+        add_round_key(plain_state, self._key_matrices[0])
+
+        for i in range(1, self.n_rounds):
+            sub_bytes(plain_state)
+            shift_rows(plain_state)
+            add_round_key(plain_state, self._key_matrices[i])
+
         sub_bytes(plain_state)
-        # shift_rows(plain_state)
+        shift_rows(plain_state)
+        add_round_key(plain_state, self._key_matrices[-1])
+
+        return matrix2bytes(plain_state)
+    
+    def encrypt_block_shift_rows_ident(self, plaintext):
+        """
+        Encrypts a single block of 16 byte long plaintext. With the shift_rows as the identity.
+        """
+        assert len(plaintext) == 16
+
+        plain_state = bytes2matrix(plaintext)
+
+        add_round_key(plain_state, self._key_matrices[0])
+
+        for i in range(1, self.n_rounds):
+            sub_bytes(plain_state)
+            mix_columns(plain_state)
+            add_round_key(plain_state, self._key_matrices[i])
+
+        sub_bytes(plain_state)
         add_round_key(plain_state, self._key_matrices[-1])
 
         return matrix2bytes(plain_state)
@@ -535,23 +574,60 @@ def benchmark():
 
 __all__ = [encrypt, decrypt, AES]
 
-def assert_bytesub_ident():
-    m = 0x00112233445566778899AABBCCDDEEFF
-    mi = 0x00112233445566778899AABBCCDDEEFE
-    mj = 0x00112233445566778899AABBCCDDEEEF
-    mij = 0x00112233445566778899AABBCCDDEEEE
+intToHex = lambda val, n: '{0:0{1}x}'.format(val, n)
+
+def assert_bytesub_ident(message):
+    assert len(message) == 32, 'message must be of length 32'
+    m_bytes = bytes.fromhex(message)
+    m_num = int(message, 16)
     key = b'P' * 16
     aes = AES(key)
     
-    # m_bits = format(m, 'b')
-    # for i in m_bits:
-    #     for j in m_bits:
-    c = aes.encrypt_block(m)
-    c_xor = aes.encrypt_block(mi) ^ aes.encrypt_block(mj) ^ aes.encrypt_block(mij)
-    c_ident = aes.encrypt_block_ident(m)
-    c_ident_xor = aes.encrypt_block_ident(mi) ^ aes.encrypt_block_ident(mj) ^ aes.encrypt_block_ident(mij)
-    return c != c_xor and c_ident == c_ident_xor
+    c = aes.encrypt_block(m_bytes)
+    c_ident = aes.encrypt_block_sub_bytes_ident(m_bytes)
+    
+    for i in range(128):
+        mi_bytes = bytes.fromhex(intToHex(m_num ^ (1 << i), 32))
+        ci = aes.encrypt_block(mi_bytes)
+        ci_ident = aes.encrypt_block_sub_bytes_ident(mi_bytes)
+        for j in range(128):
+            if j == i:
+                continue
+            mj_bytes = bytes.fromhex(intToHex(m_num ^ (1 << j), 32))
+            mij_bytes = bytes.fromhex(intToHex(m_num ^ (1 << i | 1 << j), 32))
+            
+            c_xor = xor_bytes(xor_bytes(ci, aes.encrypt_block(mj_bytes)), aes.encrypt_block(mij_bytes))
+            c_ident_xor = xor_bytes(xor_bytes(ci_ident, aes.encrypt_block_sub_bytes_ident(mj_bytes)), aes.encrypt_block_sub_bytes_ident(mij_bytes))
+            
+            assert (c != c_xor and c_ident == c_ident_xor)
+    
+    print('The first assumption is true.')
+    
+def doSection2And3(message):
+    assert len(message) == 32, 'message must be of length 32'
+    aes = AES(b'P' * 16)
+    
+    for i in range(128):
+        # Generamos un mensaje semialeatorio para cada ronda a partir del mensaje obtenido como parametro
+        m = int(message, 16) - random.randint(1, 1000)
+        m_bytes = bytes.fromhex(intToHex(m, 32))
+        mi_bytes = bytes.fromhex(intToHex(m ^ (1 << i), 32))
+        c = aes.encrypt_block(m_bytes)
+        ci = aes.encrypt_block(mi_bytes)
+        c_ident = aes.encrypt_block_shift_rows_ident(m_bytes)
+        ci_ident = aes.encrypt_block_shift_rows_ident(mi_bytes)
+        result_1 = xor_bytes(c, ci)
+        result_2 = xor_bytes(c_ident, ci_ident)
+        print('Comparrisson with M={} and Mi={}'.format(bytes.hex(m_bytes), bytes.hex(mi_bytes)))
+        print('Result of XOR between C and Ci with the default implementation: {}'.format(bytes.hex(result_1)))
+        print('Result of XOR between C and Ci with SifhtRows as the identity: {}'.format(bytes.hex(result_2)))
+        
+        c_ident = aes.encrypt_block_mix_columns_ident(m_bytes)
+        ci_ident = aes.encrypt_block_mix_columns_ident(mi_bytes)
+        result_2 = xor_bytes(c_ident, ci_ident)
+        print('Result of XOR between C and Ci with MixColumns as the identity: {}\n'.format(bytes.hex(result_2)))
 
 if __name__ == '__main__':
-    assert_bytesub_ident()
+    # assert_bytesub_ident(15337eb3971c6deac4c21b3bef8b2e95)
+    doSection2And3('15337eb3971c6deac4c21b3bef8b2e95')
     
