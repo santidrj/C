@@ -6,6 +6,7 @@ byte array and string support added by BoppreH at https://github.com/boppreh/aes
 Other block modes contributed by @righthandabacus.
 """
 import random
+import matplotlib.pyplot as plt
 
 s_box = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -627,7 +628,58 @@ def doSection2And3(message):
         result_2 = xor_bytes(c_ident, ci_ident)
         print('Result of XOR between C and Ci with MixColumns as the identity: {}\n'.format(bytes.hex(result_2)))
 
+def count_ones(c):
+    result = 0
+    while c != 0:
+        result += c%2
+        c >>= 1
+    return result
+    
+def count_positions(c):
+    result = []
+    pos = 0
+    while c != 0:
+        if c%2 != 0:
+            result.append(pos)
+        c >>= 1
+        pos += 1
+    return result
+    
+def modified_message_hist():
+    modified_bits = []
+    modified_pos = {}
+    
+    message = '15337eb3971c6deac4c21b3bef8b2e95'
+    m = int(message, 16)
+    m_bytes = bytes.fromhex(message)
+    key = bytes.fromhex('0123456789ABCDEFFEDCBA9876543210')
+    c = int(bytes.hex(AES(key).encrypt_block(m_bytes)), 16)
+    
+    for i in range(128):
+        mi_bytes = bytes.fromhex(intToHex(m ^ (1 << i), 32))
+        ci = int(bytes.hex(AES(key).encrypt_block(mi_bytes)), 16)
+        
+        modified_bits.append(count_ones(c ^ ci))
+        
+        positions = count_positions(c ^ ci)
+        for pos in positions:
+            if pos in modified_pos:
+                modified_pos[pos] += 1
+            else:
+                modified_pos[pos] = 1
+                
+    plt.hist(modified_bits, alpha=1, edgecolor = 'black',  linewidth=1)
+    plt.xlim(xmin=0, xmax=128)
+    plt.grid(True)
+    plt.show()
+
+    plt.bar(modified_pos.keys(), modified_pos.values())
+    plt.xlabel("Posicion del bit")
+    plt.ylabel("Numero de cambios")
+    plt.show()
+
 if __name__ == '__main__':
     # assert_bytesub_ident(15337eb3971c6deac4c21b3bef8b2e95)
-    doSection2And3('15337eb3971c6deac4c21b3bef8b2e95')
+    # doSection2And3('15337eb3971c6deac4c21b3bef8b2e95')
+    modified_message_hist()
     
