@@ -37,7 +37,8 @@ if __name__ == "__main__":
             iv = H[16:]
 
             enc = read_file(
-                "/home/santiago/MEGAsync/7o_Cuatrimestre/C/Lab/Lab02/2020_09_25_10_31_48_santiago.del.rey.puerta_trasera.enc")
+                "/home/santiago/MEGAsync/7o_Cuatrimestre/C/Lab/Lab02/2020_09_25_10_31_48_santiago.del.rey"
+                ".puerta_trasera.enc")
             aes = AES.new(k, AES.MODE_CBC, iv)
             dec = unpad(aes.decrypt(enc), AES.block_size)
         except ValueError:
@@ -51,8 +52,8 @@ if __name__ == "__main__":
                 ['file', '-b', '/home/santiago/MEGAsync/7o_Cuatrimestre/C/Lab/Lab02/initial_decript'],
                 stdout=subprocess.PIPE)
 
-            if 'data' not in file_type.stdout.decode('utf-8') and 'DOS' not in file_type.stdout.decode(
-                    'utf-8') and 'PGP' not in file_type.stdout.decode(
-                'utf-8') and 'font file' not in file_type.stdout.decode('utf-8'):
+            if 'data' not in file_type.stdout.decode('utf-8') and 'DOS' not in file_type.stdout.decode('utf-8') \
+                    and 'PGP' not in file_type.stdout.decode('utf-8') \
+                    and 'font file' not in file_type.stdout.decode('utf-8'):
                 write_file(f"/home/santiago/MEGAsync/7o_Cuatrimestre/C/Lab/Lab02/outputs/decripted{i}", dec)
                 i += 1
