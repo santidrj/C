@@ -5,6 +5,9 @@ https://github.com/bozhu/AES-Python . PKCS#7 padding, CBC mode, PKBDF2, HMAC,
 byte array and string support added by BoppreH at https://github.com/boppreh/aes. 
 Other block modes contributed by @righthandabacus.
 """
+from hmac import new as new_hmac, compare_digest
+from hashlib import pbkdf2_hmac
+import os
 import random
 import matplotlib.pyplot as plt
 
@@ -70,6 +73,7 @@ def inv_shift_rows(s):
     s[0][2], s[1][2], s[2][2], s[3][2] = s[2][2], s[3][2], s[0][2], s[1][2]
     s[0][3], s[1][3], s[2][3], s[3][3] = s[1][3], s[2][3], s[3][3], s[0][3]
 
+
 def add_round_key(s, k):
     for i in range(4):
         for j in range(4):
@@ -77,7 +81,7 @@ def add_round_key(s, k):
 
 
 # learned from http://cs.ucsb.edu/~koc/cs178/projects/JT/aes.c
-xtime = lambda a: (((a << 1) ^ 0x1B) & 0xFF) if (a & 0x80) else (a << 1)
+def xtime(a): return (((a << 1) ^ 0x1B) & 0xFF) if (a & 0x80) else (a << 1)
 
 
 def mix_single_column(a):
@@ -120,13 +124,16 @@ def bytes2matrix(text):
     """ Converts a 16-byte array into a 4x4 matrix.  """
     return [list(text[i:i+4]) for i in range(0, len(text), 4)]
 
+
 def matrix2bytes(matrix):
     """ Converts a 4x4 matrix into a 16-byte array.  """
     return bytes(sum(matrix, []))
 
+
 def xor_bytes(a, b):
     """ Returns a new byte array with the elements xor'ed. """
-    return bytes(i^j for i, j in zip(a, b))
+    return bytes(i ^ j for i, j in zip(a, b))
+
 
 def inc_bytes(a):
     """ Returns a new byte array with the value increment by 1 """
@@ -139,6 +146,7 @@ def inc_bytes(a):
             break
     return bytes(out)
 
+
 def pad(plaintext):
     """
     Pads the given plaintext with PKCS#7 padding to a multiple of 16 bytes.
@@ -148,6 +156,7 @@ def pad(plaintext):
     padding_len = 16 - (len(plaintext) % 16)
     padding = bytes([padding_len] * padding_len)
     return plaintext + padding
+
 
 def unpad(plaintext):
     """
@@ -160,9 +169,10 @@ def unpad(plaintext):
     assert all(p == padding_len for p in padding)
     return message
 
+
 def split_blocks(message, block_size=16, require_padding=True):
-        assert len(message) % block_size == 0 or not require_padding
-        return [message[i:i+16] for i in range(0, len(message), block_size)]
+    assert len(message) % block_size == 0 or not require_padding
+    return [message[i:i+16] for i in range(0, len(message), block_size)]
 
 
 class AES:
@@ -173,6 +183,7 @@ class AES:
     management. Unless you need that, please use `encrypt` and `decrypt`.
     """
     rounds_by_key_size = {16: 10, 24: 12, 32: 14}
+
     def __init__(self, master_key):
         """
         Initializes the object with a given key.
@@ -215,7 +226,7 @@ class AES:
             key_columns.append(word)
 
         # Group key words in 4x4 byte matrices.
-        return [key_columns[4*i : 4*(i+1)] for i in range(len(key_columns) // 4)]
+        return [key_columns[4*i: 4*(i+1)] for i in range(len(key_columns) // 4)]
 
     def encrypt_block(self, plaintext):
         """
@@ -236,9 +247,9 @@ class AES:
         sub_bytes(plain_state)
         shift_rows(plain_state)
         add_round_key(plain_state, self._key_matrices[-1])
-    
+
         return matrix2bytes(plain_state)
-    
+
     def encrypt_block_sub_bytes_ident(self, plaintext):
         """
         Encrypts a single block of 16 byte long plaintext. With the sub_bytes as the identity.
@@ -256,7 +267,7 @@ class AES:
 
         shift_rows(plain_state)
         add_round_key(plain_state, self._key_matrices[-1])
-    
+
     def encrypt_block_mix_columns_ident(self, plaintext):
         """
         Encrypts a single block of 16 byte long plaintext. With the mix_columns as the identity.
@@ -277,7 +288,7 @@ class AES:
         add_round_key(plain_state, self._key_matrices[-1])
 
         return matrix2bytes(plain_state)
-    
+
     def encrypt_block_shift_rows_ident(self, plaintext):
         """
         Encrypts a single block of 16 byte long plaintext. With the shift_rows as the identity.
@@ -350,7 +361,8 @@ class AES:
         previous = iv
         for ciphertext_block in split_blocks(ciphertext):
             # CBC mode decrypt: previous XOR decrypt(ciphertext)
-            blocks.append(xor_bytes(previous, self.decrypt_block(ciphertext_block)))
+            blocks.append(
+                xor_bytes(previous, self.decrypt_block(ciphertext_block)))
             previous = ciphertext_block
 
         return unpad(b''.join(blocks))
@@ -369,7 +381,8 @@ class AES:
         prev_plaintext = bytes(16)
         for plaintext_block in split_blocks(plaintext):
             # PCBC mode encrypt: encrypt(plaintext_block XOR (prev_ciphertext XOR prev_plaintext))
-            ciphertext_block = self.encrypt_block(xor_bytes(plaintext_block, xor_bytes(prev_ciphertext, prev_plaintext)))
+            ciphertext_block = self.encrypt_block(
+                xor_bytes(plaintext_block, xor_bytes(prev_ciphertext, prev_plaintext)))
             blocks.append(ciphertext_block)
             prev_ciphertext = ciphertext_block
             prev_plaintext = plaintext_block
@@ -388,7 +401,8 @@ class AES:
         prev_plaintext = bytes(16)
         for ciphertext_block in split_blocks(ciphertext):
             # PCBC mode decrypt: (prev_plaintext XOR prev_ciphertext) XOR decrypt(ciphertext_block)
-            plaintext_block = xor_bytes(xor_bytes(prev_ciphertext, prev_plaintext), self.decrypt_block(ciphertext_block))
+            plaintext_block = xor_bytes(xor_bytes(
+                prev_ciphertext, prev_plaintext), self.decrypt_block(ciphertext_block))
             blocks.append(plaintext_block)
             prev_ciphertext = ciphertext_block
             prev_plaintext = plaintext_block
@@ -405,7 +419,8 @@ class AES:
         prev_ciphertext = iv
         for plaintext_block in split_blocks(plaintext, require_padding=False):
             # CFB mode encrypt: plaintext_block XOR encrypt(prev_ciphertext)
-            ciphertext_block = xor_bytes(plaintext_block, self.encrypt_block(prev_ciphertext))
+            ciphertext_block = xor_bytes(
+                plaintext_block, self.encrypt_block(prev_ciphertext))
             blocks.append(ciphertext_block)
             prev_ciphertext = ciphertext_block
 
@@ -421,7 +436,8 @@ class AES:
         prev_ciphertext = iv
         for ciphertext_block in split_blocks(ciphertext, require_padding=False):
             # CFB mode decrypt: ciphertext XOR decrypt(prev_ciphertext)
-            plaintext_block = xor_bytes(ciphertext_block, self.encrypt_block(prev_ciphertext))
+            plaintext_block = xor_bytes(
+                ciphertext_block, self.encrypt_block(prev_ciphertext))
             blocks.append(plaintext_block)
             prev_ciphertext = ciphertext_block
 
@@ -494,10 +510,6 @@ class AES:
         return b''.join(blocks)
 
 
-import os
-from hashlib import pbkdf2_hmac
-from hmac import new as new_hmac, compare_digest
-
 AES_KEY_SIZE = 16
 HMAC_KEY_SIZE = 16
 IV_SIZE = 16
@@ -505,12 +517,14 @@ IV_SIZE = 16
 SALT_SIZE = 16
 HMAC_SIZE = 32
 
+
 def get_key_iv(password, salt, workload=100000):
     """
     Stretches the password and extracts an AES key, an HMAC key and an AES
     initialization vector.
     """
-    stretched = pbkdf2_hmac('sha256', password, salt, workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE)
+    stretched = pbkdf2_hmac('sha256', password, salt,
+                            workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE)
     aes_key, stretched = stretched[:AES_KEY_SIZE], stretched[AES_KEY_SIZE:]
     hmac_key, stretched = stretched[:HMAC_KEY_SIZE], stretched[HMAC_KEY_SIZE:]
     iv = stretched[:IV_SIZE]
@@ -546,7 +560,8 @@ def decrypt(key, ciphertext, workload=100000):
     The exact algorithm is specified in the module docstring.
     """
 
-    assert len(ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
+    assert len(
+        ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
 
     assert len(ciphertext) >= 32, """
     Ciphertext must be at least 32 bytes long (16 byte salt + 16 byte block). To
@@ -561,7 +576,8 @@ def decrypt(key, ciphertext, workload=100000):
     key, hmac_key, iv = get_key_iv(key, salt, workload)
 
     expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
-    assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
+    assert compare_digest(
+        hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
 
     return AES(key).decrypt_cbc(ciphertext, iv)
 
@@ -573,9 +589,13 @@ def benchmark():
     for i in range(30000):
         aes.encrypt_block(message)
 
+
 __all__ = [encrypt, decrypt, AES]
 
-intToHex = lambda val, n: '{0:0{1}x}'.format(val, n)
+
+# Excercise 2.1
+def intToHex(val, n): return '{0:0{1}x}'.format(val, n)
+
 
 def assert_bytesub_ident(message):
     assert len(message) == 32, 'message must be of length 32'
@@ -583,10 +603,10 @@ def assert_bytesub_ident(message):
     m_num = int(message, 16)
     key = b'P' * 16
     aes = AES(key)
-    
+
     c = aes.encrypt_block(m_bytes)
     c_ident = aes.encrypt_block_sub_bytes_ident(m_bytes)
-    
+
     for i in range(128):
         mi_bytes = bytes.fromhex(intToHex(m_num ^ (1 << i), 32))
         ci = aes.encrypt_block(mi_bytes)
@@ -596,18 +616,21 @@ def assert_bytesub_ident(message):
                 continue
             mj_bytes = bytes.fromhex(intToHex(m_num ^ (1 << j), 32))
             mij_bytes = bytes.fromhex(intToHex(m_num ^ (1 << i | 1 << j), 32))
-            
-            c_xor = xor_bytes(xor_bytes(ci, aes.encrypt_block(mj_bytes)), aes.encrypt_block(mij_bytes))
-            c_ident_xor = xor_bytes(xor_bytes(ci_ident, aes.encrypt_block_sub_bytes_ident(mj_bytes)), aes.encrypt_block_sub_bytes_ident(mij_bytes))
-            
+
+            c_xor = xor_bytes(xor_bytes(ci, aes.encrypt_block(
+                mj_bytes)), aes.encrypt_block(mij_bytes))
+            c_ident_xor = xor_bytes(xor_bytes(ci_ident, aes.encrypt_block_sub_bytes_ident(
+                mj_bytes)), aes.encrypt_block_sub_bytes_ident(mij_bytes))
+
             assert (c != c_xor and c_ident == c_ident_xor)
-    
+
     print('The first assumption is true.')
-    
+
+
 def doSection2And3(message):
     assert len(message) == 32, 'message must be of length 32'
     aes = AES(b'P' * 16)
-    
+
     for i in range(128):
         # Generamos un mensaje semialeatorio para cada ronda a partir del mensaje obtenido como parametro
         m = int(message, 16) - random.randint(1, 1000)
@@ -619,67 +642,144 @@ def doSection2And3(message):
         ci_ident = aes.encrypt_block_shift_rows_ident(mi_bytes)
         result_1 = xor_bytes(c, ci)
         result_2 = xor_bytes(c_ident, ci_ident)
-        print('Comparrisson with M={} and Mi={}'.format(bytes.hex(m_bytes), bytes.hex(mi_bytes)))
-        print('Result of XOR between C and Ci with the default implementation: {}'.format(bytes.hex(result_1)))
-        print('Result of XOR between C and Ci with SifhtRows as the identity: {}'.format(bytes.hex(result_2)))
-        
+        print('Comparrisson with M={} and Mi={}'.format(
+            bytes.hex(m_bytes), bytes.hex(mi_bytes)))
+        print('Result of XOR between C and Ci with the default implementation: {}'.format(
+            bytes.hex(result_1)))
+        print('Result of XOR between C and Ci with SifhtRows as the identity: {}'.format(
+            bytes.hex(result_2)))
+
         c_ident = aes.encrypt_block_mix_columns_ident(m_bytes)
         ci_ident = aes.encrypt_block_mix_columns_ident(mi_bytes)
         result_2 = xor_bytes(c_ident, ci_ident)
-        print('Result of XOR between C and Ci with MixColumns as the identity: {}\n'.format(bytes.hex(result_2)))
+        print('Result of XOR between C and Ci with MixColumns as the identity: {}\n'.format(
+            bytes.hex(result_2)))
 
+# Exercise 2.2
 def count_ones(c):
     result = 0
     while c != 0:
-        result += c%2
+        result += c % 2
         c >>= 1
     return result
-    
+
+
 def count_positions(c):
     result = []
     pos = 0
     while c != 0:
-        if c%2 != 0:
+        if c % 2 != 0:
             result.append(pos)
         c >>= 1
         pos += 1
     return result
-    
+
+
 def modified_message_hist():
     modified_bits = []
     modified_pos = {}
-    
+
     message = '15337eb3971c6deac4c21b3bef8b2e95'
     m = int(message, 16)
     m_bytes = bytes.fromhex(message)
     key = bytes.fromhex('0123456789ABCDEFFEDCBA9876543210')
     c = int(bytes.hex(AES(key).encrypt_block(m_bytes)), 16)
-    
+
     for i in range(128):
         mi_bytes = bytes.fromhex(intToHex(m ^ (1 << i), 32))
         ci = int(bytes.hex(AES(key).encrypt_block(mi_bytes)), 16)
-        
+
         modified_bits.append(count_ones(c ^ ci))
-        
+
         positions = count_positions(c ^ ci)
         for pos in positions:
             if pos in modified_pos:
                 modified_pos[pos] += 1
             else:
                 modified_pos[pos] = 1
-                
-    plt.hist(modified_bits, alpha=1, edgecolor = 'black',  linewidth=1)
+
+    plt.hist(modified_bits, alpha=1, edgecolor='black',  linewidth=1)
     plt.xlim(xmin=0, xmax=128)
     plt.grid(True)
     plt.show()
 
     plt.bar(modified_pos.keys(), modified_pos.values())
-    plt.xlabel("Posicion del bit")
-    plt.ylabel("Numero de cambios")
+    plt.xlabel("Bit")
+    plt.ylabel("Number of changes")
     plt.show()
+
+
+def modified_key_hist():
+    modified_bits = []
+    modified_pos = {}
+
+    m_bytes = bytes.fromhex('15337eb3971c6deac4c21b3bef8b2e95')
+    key = '0123456789ABCDEFFEDCBA9876543210'
+    k = int(key, 16)
+    k_bytes = bytes.fromhex(key)
+    c = int(bytes.hex(AES(k_bytes).encrypt_block(m_bytes)), 16)
+
+    for i in range(128):
+        ki_bytes = bytes.fromhex(intToHex(k ^ (1 << i), 32))
+        ci = int(bytes.hex(AES(ki_bytes).encrypt_block(m_bytes)), 16)
+
+        modified_bits.append(count_ones(c ^ ci))
+
+        positions = count_positions(c ^ ci)
+        for pos in positions:
+            if pos in modified_pos:
+                modified_pos[pos] += 1
+            else:
+                modified_pos[pos] = 1
+
+    plt.hist(modified_bits, alpha=1, edgecolor='black',  linewidth=1)
+    plt.xlim(xmin=0, xmax=128)
+    plt.grid(True)
+    plt.show()
+
+    plt.bar(modified_pos.keys(), modified_pos.values())
+    plt.xlabel("Bit")
+    plt.ylabel("Number of changes")
+    plt.show()
+
+
+# Exercise 2.3
+def search_max_zeros():
+    m = bytes.fromhex('00112233445566778899AABBCCDDEEFF')
+    max_zeros = 0
+    key = ''
+    k1 = int('FF'*16, 16)
+    k2 = k1 // 2
+    
+    for i in range(100000):
+        k = int.to_bytes(k1 - i, 16, byteorder='big')
+        c = AES(k).encrypt_block(m)
+        
+        bit_stream = format(int.from_bytes(c, byteorder='big'), 'b')
+        n_zeros = 128 - len(bit_stream)
+        if n_zeros > max_zeros:
+            max_zeros = n_zeros
+            key = '0x{}'.format(bytes.hex(k).upper())
+            
+        k = int.to_bytes(k2 + i, 16, byteorder='big')
+        c = AES(k).encrypt_block(m)
+        
+        bit_stream = format(int.from_bytes(c, byteorder='big'), 'b')
+        n_zeros = 128 - len(bit_stream)
+        if n_zeros > max_zeros:
+            max_zeros = n_zeros
+            key = '0x{}'.format(bytes.hex(k).upper())
+    
+    print(max_zeros)
+    print(key)
 
 if __name__ == '__main__':
     # assert_bytesub_ident(15337eb3971c6deac4c21b3bef8b2e95)
     # doSection2And3('15337eb3971c6deac4c21b3bef8b2e95')
-    modified_message_hist()
+    # modified_message_hist()
+    # modified_key_hist()
+    search_max_zeros()
     
+    # key = bytes.fromhex('0123456789ABCDEFFEDCBA9876543210')
+    # c = bytes.fromhex('00'*16)
+    # print(bytes.hex(AES(key).decrypt_block(c)).upper())
