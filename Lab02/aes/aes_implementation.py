@@ -5,10 +5,11 @@ https://github.com/bozhu/AES-Python . PKCS#7 padding, CBC mode, PKBDF2, HMAC,
 byte array and string support added by BoppreH at https://github.com/boppreh/aes. 
 Other block modes contributed by @righthandabacus.
 """
-from hmac import new as new_hmac, compare_digest
-from hashlib import pbkdf2_hmac
 import os
 import random
+from hashlib import pbkdf2_hmac
+from hmac import new as new_hmac, compare_digest
+
 import matplotlib.pyplot as plt
 
 s_box = (
@@ -774,12 +775,17 @@ def search_max_zeros():
     print(key)
 
 if __name__ == '__main__':
+    # Excercise 2.1
     # assert_bytesub_ident(15337eb3971c6deac4c21b3bef8b2e95)
     # doSection2And3('15337eb3971c6deac4c21b3bef8b2e95')
+
+    # Exercise 2.2
     # modified_message_hist()
     # modified_key_hist()
+    
+    # Exercise 2.3
     search_max_zeros()
     
-    # key = bytes.fromhex('0123456789ABCDEFFEDCBA9876543210')
-    # c = bytes.fromhex('00'*16)
-    # print(bytes.hex(AES(key).decrypt_block(c)).upper())
+    key = bytes.fromhex('0123456789ABCDEFFEDCBA9876543210')
+    c = bytes.fromhex('00'*16)
+    print(bytes.hex(AES(key).decrypt_block(c)).upper())
