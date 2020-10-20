@@ -2,6 +2,7 @@
 import numpy as np
 import time
 
+
 def GF_product_p(a, b):
     """Realiza el producto de dos elementos en el cuerpo utilizando la definición en términos polinómicos.
 
@@ -12,7 +13,10 @@ def GF_product_p(a, b):
     Returns:
     integer: Un elemento del cuerpo representado por un enter entre 0 i 255.
     """
-    
+
+    if a == 0 or b == 0:
+        return 0
+
     num_2 = np.binary_repr(b)
     partial_results = [0] * len(num_2)
     partial_results[0] = a
@@ -35,7 +39,7 @@ def GF_product_p(a, b):
     for i, bit in enumerate(num_2[1:], 1):
         if bit == '1':
             result = result ^ partial_results[grade - i]
-            
+
     return result
 
 
@@ -49,13 +53,13 @@ def GF_es_generador(g):
         boolean: True si g es generador del cuerpo, False si no lo es.
     """
 
-    acc = g
-    for i in range(2, 256):
+    acc = 1
+    for i in range(1, 256):
         acc = GF_product_p(acc, g)
-        if acc == 1 and i != 255:
-            return False
+        if acc == 1:
+            return i == 255
 
-    return True
+    return False
 
 
 def GF_tables():
@@ -77,7 +81,9 @@ def GF_tables():
 
     return t_exp, t_log
 
+
 t_exp, t_log = GF_tables()
+
 
 def GF_product_t(a, b):
     """Realiza el producto de dos elementos del cuerpo utilizando las tablas exponencial y logaritmo.
@@ -89,6 +95,8 @@ def GF_product_t(a, b):
     Returns:
         integer: Un elemento del cuerpo representado por un entero entre 0 i 255 que es el producto en el cuerpo de a i b.
     """
+    if a == 0 or b == 0:
+        return 0
 
     prod_i = (t_log[a] + t_log[b]) % 255
     prod = t_exp[prod_i]
@@ -110,13 +118,14 @@ def GF_invers(a):
     # t_exp, t_log = GF_tables()
     return t_exp[255 - t_log[a]]
 
+
 # %%
 a = 0x82
 v = [0x2B, 0x02, 0x03, 0x09, 0x0B, 0x0D, 0x0E]
 n = 1000
 for b in v:
     total_p_time = 0
-    total_t_time = 0    
+    total_t_time = 0
     p_time = 0
     t_time = 0
     for i in range(n):
@@ -132,4 +141,24 @@ for b in v:
     print('Execution time of GF_product_t({},{}): {}\n'.format(a, b, total_t_time))
 
 # %%
-GF_product_p(145, GF_invers(145))
+assert GF_invers(0) == 0
+
+for i in range(1, 256):
+    a = GF_product_p(i, GF_invers(i))
+    assert a == 1
+
+for i in range(256):
+    for j in range(256):
+        a = GF_product_p(i, j)
+        b = GF_product_t(i, j)
+        assert a == b
+
+for i in range(256):
+    for j in range(256):
+        a = GF_product_p(i, j)
+        b = GF_product_p(j, i)
+        assert a == b
+
+assert GF_es_generador(0) == False
+
+print('End')
