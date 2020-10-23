@@ -1,4 +1,6 @@
 # %%
+import math
+
 import numpy as np
 import time
 
@@ -31,7 +33,8 @@ def GF_product_p(a, b):
 
         # Si el bit 7 antes del shift era 1 entonces aplicamos el modulo
         if bit7 == '1':
-            result = result ^ 0x1D
+            # result = result ^ 0x1D
+            result = result ^ 0x1B  # AES
 
         # Almacenamos los resultados parciales
         partial_results[i] = result
@@ -68,7 +71,8 @@ def GF_tables():
     representado por el menor entero entre 0 i 255)
     """
 
-    g = 2
+    # g = 2
+    g = 3  # AES
     acc = g
     t_exp = [1] * 256
     t_exp[1] = g
@@ -159,6 +163,15 @@ for i in range(256):
         b = GF_product_p(j, i)
         assert a == b
 
-assert GF_es_generador(0) == False
+assert not GF_es_generador(0)
 
 print('End')
+
+# %%
+print('Producto: ', GF_product_p(0x67, 0x06))
+print('Inverso: ', GF_invers(0x04))
+
+# %%
+for g in range(256):
+    if GF_es_generador(g):
+        print(math.gcd(int(math.log(g)), 255))
