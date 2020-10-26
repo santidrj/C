@@ -8,6 +8,7 @@ class rsa_key:
         """
         Genera una clau RSA (de 2048 bits i amb exponent públic 2**16+1 per defecte).
         """
+        # TODO: Chage getPrime to use sympy
         self.publicExponent = e
         self.primeP = number.getPrime(bits_modulo, Random.get_random_bytes)
         self.primeQ = number.getPrime(bits_modulo, Random.get_random_bytes)
