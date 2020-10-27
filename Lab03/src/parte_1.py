@@ -14,13 +14,13 @@ def get_random_alphanumeric_string(length):
 
 bits_modulo = [512, 1024, 2048, 4096]
 messages = [int(hashlib.sha256(get_random_alphanumeric_string(20).encode()).hexdigest(), 16) for i in range(100)]
+rounds = 10
 
 output = "Bits modulo,Tiempo usando TXR (s),Tiempo sin usar TXR (s)\n"
 
 for modulo in bits_modulo:
     rsa = rsa_key(bits_modulo=modulo)
 
-    rounds = 20
     time_to_sign = 0
     time_to_sign_slow = 0
     for i in range(rounds):
@@ -37,10 +37,9 @@ for modulo in bits_modulo:
     time_to_sign_slow /= rounds
 
     print(f'''
-    modulo: {modulo}
-    fast: {time_to_sign}
-    slow: {time_to_sign_slow}
-    ''')
+    modulo: {modulo} s
+    fast: {time_to_sign} s
+    slow: {time_to_sign_slow} s''')
 
     output += f"{modulo},{time_to_sign},{time_to_sign_slow}\n"
 

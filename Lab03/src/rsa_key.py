@@ -1,6 +1,6 @@
+import math
+
 import sympy
-from Crypto import Random
-from Crypto.Util import number
 
 
 class rsa_key:
@@ -8,29 +8,37 @@ class rsa_key:
         """
         Genera una clau RSA (de 2048 bits i amb exponent públic 2**16+1 per defecte).
         """
-        # TODO: Chage getPrime to use sympy
         self.publicExponent = e
-        self.primeP = number.getPrime(bits_modulo, Random.get_random_bytes)
-        self.primeQ = number.getPrime(bits_modulo, Random.get_random_bytes)
+        self.primeP = sympy.randprime(pow(2, (bits_modulo - 1)), pow(2, bits_modulo))
+        self.primeQ = sympy.randprime(pow(2, (bits_modulo - 1)), pow(2, bits_modulo))
+
+        while not self.p_and_q_coprimes_with_e() and self.primeP == self.primeQ:
+            self.primeP = sympy.randprime(pow(2, (bits_modulo - 1)), pow(2, bits_modulo))
+            self.primeQ = sympy.randprime(pow(2, (bits_modulo - 1)), pow(2, bits_modulo))
+
         self.modulus = self.primeP * self.primeQ
-        self.privateExponent = sympy.mod_inverse(self.publicExponent, (self.primeP - 1) * (self.primeQ - 1))
-        self.privateExponentModulusPhiP = sympy.mod_inverse(self.publicExponent, (self.primeP - 1))
-        self.privateExponentModulusPhiQ = sympy.mod_inverse(self.publicExponent, (self.primeQ - 1))
+        self.privateExponent = sympy.mod_inverse(self.publicExponent, (self.primeP - 1) * (self.primeQ - 1)) % \
+                               (self.primeP - 1) * (self.primeQ - 1)
+        self.privateExponentModulusPhiP = self.privateExponent % (self.primeP - 1)
+        self.privateExponentModulusPhiQ = self.privateExponent % (self.primeQ - 1)
         self.inverseQModulusP = sympy.mod_inverse(self.primeQ, self.primeP)
+        self.Q = self.inverseQModulusP * self.primeQ
+
+    def p_and_q_coprimes_with_e(self):
+        """
+        Retorna el booleà True si p y q són coprimers amb e.
+        Altrament retorna el booleà False.
+        """
+        return math.gcd(self.publicExponent, self.primeP) == 1 and math.gcd(self.publicExponent, self.primeQ) == 1
 
     def sign(self, message):
         """
         Retorna un enter que és la signatura de "message" feta amb la clau RSA fent servir el TXR.
         """
-        d_1 = self.privateExponent % (self.primeP - 1)
-        d_2 = self.privateExponent % (self.primeQ - 1)
-        p_1 = sympy.mod_inverse(self.primeP, self.primeQ)
-        q_1 = sympy.mod_inverse(self.primeQ, self.primeP)
+        c_1 = pow(message, self.privateExponentModulusPhiP, self.primeP)
+        c_2 = pow(message, self.privateExponentModulusPhiQ, self.primeQ)
 
-        c_1 = pow(message, d_1, self.primeP)
-        c_2 = pow(message, d_2, self.primeQ)
-
-        return (c_1 * q_1 * self.primeQ + c_2 * p_1 * self.primeP) % self.modulus
+        return (c_1 * self.Q + c_2 * (1 - self.Q)) % self.modulus
 
     def sign_slow(self, message):
         """
