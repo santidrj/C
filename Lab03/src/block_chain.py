@@ -15,6 +15,15 @@ class block_chain:
         """
         next_block = self.list_of_blocks[-1].next_block(transaction)
         self.list_of_blocks.append(next_block)
+        return self
+
+    def add_wrong_block(self, transaction):
+        """
+        Afegeix a la llista de blocs un now bloc invàlid generat amb la transacció "transaction".
+        """
+        next_block = self.list_of_blocks[-1].next_wrong_block(transaction)
+        self.list_of_blocks.append(next_block)
+        return self
 
     def verify(self):
         """
@@ -27,9 +36,9 @@ class block_chain:
         En qualsevol altre cas retorna el booleá False i fins a quin bloc la cadena és vàlida.
         """
         if not self.list_of_blocks[0].is_genesis():
-            return False, 0
+            return [False, 0]
 
         for idx, current_block in enumerate(self.list_of_blocks[1:], 1):
             if not current_block.verify_block():
-                return False, idx
-        return True
+                return [False, idx]
+        return [True, -1]

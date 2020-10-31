@@ -2,7 +2,6 @@ import math
 
 import sympy
 
-
 class rsa_key:
     def __init__(self, bits_modulo=2048, e=2 ** 16 + 1):
         """
@@ -17,8 +16,7 @@ class rsa_key:
             self.primeQ = sympy.randprime(pow(2, (bits_modulo - 1)), pow(2, bits_modulo))
 
         self.modulus = self.primeP * self.primeQ
-        self.privateExponent = sympy.mod_inverse(self.publicExponent, (self.primeP - 1) * (self.primeQ - 1)) % \
-                               (self.primeP - 1) * (self.primeQ - 1)
+        self.privateExponent = sympy.mod_inverse(self.publicExponent, (self.primeP - 1) * (self.primeQ - 1))
         self.privateExponentModulusPhiP = self.privateExponent % (self.primeP - 1)
         self.privateExponentModulusPhiQ = self.privateExponent % (self.primeQ - 1)
         self.inverseQModulusP = sympy.mod_inverse(self.primeQ, self.primeP)
