@@ -21,8 +21,7 @@ def create_comp_table():
     print("Iniciando la comparación entre la firma con TXR y sin TXR.")
 
     rounds = 10
-    # bits_modulo = [512, 1024, 2048, 4096]
-    bits_modulo = [512]
+    bits_modulo = [512, 1024, 2048, 4096]
     output = [["Bits modulo", "Tiempo usando TXR (s)", "Tiempo sin usar TXR (s)"]]
     for modulo in bits_modulo:
         rsa = rsa_key(bits_modulo=modulo)
