@@ -7,14 +7,19 @@ import string
 from pathlib import Path
 from time import time
 
-from Lab03.src.block_chain import block_chain
-from Lab03.src.rsa_key import rsa_key
-from Lab03.src.transaction import transaction
+from block_chain import block_chain
+from rsa_key import rsa_key
+from transaction import transaction
+
+output_folder = "../outputs"
 
 
 def get_random_alphanumeric_string(length):
     letters_and_digits = string.ascii_letters + string.digits
-    return ''.join((random.choice(letters_and_digits) for i in range(length)))
+    return ''.join((random.choice(letters_and_digits) for _ in range(length)))
+
+
+messages = [int(hashlib.sha256(get_random_alphanumeric_string(20).encode()).hexdigest(), 16) for _ in range(100)]
 
 
 def create_comp_table():
@@ -87,33 +92,42 @@ def create_invalid_block_chain():
     generate_block_chain("invalid_block_chain.pickle", limit=39)
 
 
-def main():
-    print("Por favor introduzca una de las siguientes opciones:")
-    while True:
-        option = input("""\t(1) Crear una tabla comparatiba de la firma digital usando el TXR y sin usarlo
-    (2) Crear un blockchain válido de 100 bloques
-    (3) Crear un blockchain inválido de 100 bloques
-    (4) Realizar todas las tareas anteriores y salir
-    (5) Salir
-""")
-        if '5' == option:
-            break
-        elif '4' == option:
-            create_comp_table()
-            create_valid_block_chain()
-            create_invalid_block_chain()
-            break
-        elif '1' == option:
-            create_comp_table()
-        elif '2' == option:
-            create_valid_block_chain()
-        elif '3' == option:
-            create_invalid_block_chain()
-        else:
-            print("La opción introducida no es válida, pruebe de nuevo.")
+class Parte1:
+    @staticmethod
+    def execute():
+        print("Por favor introduzca una de las siguientes opciones:")
+        while True:
+            option = input("""\t(1) Crear una tabla comparatiba de la firma digital usando el TXR y sin usarlo
+        (2) Crear un blockchain válido de 100 bloques
+        (3) Crear un blockchain inválido de 100 bloques
+        (4) Realizar todas las tareas anteriores y pasar al apartado 2
+        (5) Realizar todas las tareas anteriores y salir del programa
+        (6) Saltar al apartado 2
+        (7) Salir del programa
+    """)
+            if '4' == option:
+                create_comp_table()
+                create_valid_block_chain()
+                create_invalid_block_chain()
+                break
+            elif '5' == option:
+                create_comp_table()
+                create_valid_block_chain()
+                create_invalid_block_chain()
+                quit()
+            elif '6' == option:
+                break
+            elif '7' == option:
+                quit()
+            elif '1' == option:
+                create_comp_table()
+            elif '2' == option:
+                create_valid_block_chain()
+            elif '3' == option:
+                create_invalid_block_chain()
+            else:
+                print("La opción introducida no es válida, pruebe de nuevo.")
 
 
 if __name__ == '__main__':
-    output_folder = "../outputs"
-    messages = [int(hashlib.sha256(get_random_alphanumeric_string(20).encode()).hexdigest(), 16) for _ in range(100)]
-    main()
+    Parte1.execute()

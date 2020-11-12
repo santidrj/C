@@ -1,4 +1,4 @@
-from Lab03.src.block import block
+from block import block
 
 
 class block_chain:

@@ -1,10 +1,10 @@
 import pytest
 
-from Lab03.src.block import block
-from Lab03.src.block_chain import block_chain
-from Lab03.src.rsa_key import rsa_key
-from Lab03.src.rsa_public_key import rsa_public_key
-from Lab03.src.transaction import transaction
+from block import block
+from block_chain import block_chain
+from rsa_key import rsa_key
+from rsa_public_key import rsa_public_key
+from transaction import transaction
 
 
 @pytest.fixture

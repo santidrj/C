@@ -1,4 +1,4 @@
-from Lab03.src.rsa_public_key import rsa_public_key
+from rsa_public_key import rsa_public_key
 
 
 class transaction:
