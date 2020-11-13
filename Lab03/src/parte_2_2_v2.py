@@ -47,12 +47,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # n = 31356
-    # start = time()
-    # p, q = factor(n)
-    # print(f'Elapsed time: {time() - start}')
-    #
-    # print(f'p = {p}')
-    # print(f'q = {q}')
-    # assert p * q == n
+    # main()
+    n = 31356
+    start = time()
+    p, q = factor(n)
+    print(f'Elapsed time: {time() - start}')
+
+    print(f'p = {p}')
+    print(f'q = {q}')
+    assert p * q == n

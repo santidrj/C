@@ -1,0 +1,16 @@
+M = Integer(31356)
+k = 2 ** ceil(Integer(M.nbits()).log(2) - 1)
+k
+upper_rs = M >> (3 * k // 2)
+upper_rs
+lower_rs = M & (2 ** (k // 2) - 1)
+lower_rs
+rs = upper_rs << (k // 2) | lower_rs
+rs
+factor(rs)
+p = 2 << (k // 2) | 62
+p
+q = 62 << (k // 2) | 2
+q
+factor(M)
+
