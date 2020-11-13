@@ -1,5 +1,6 @@
 import os
 from math import sqrt
+from time import time
 
 import Crypto.PublicKey.RSA as rsa
 from gmpy2.gmpy2 import mpz, ceil, log2, t_mod, t_div
@@ -43,10 +44,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # n = 31356
-    # p, q = factor(n)
-    #
-    # print(f'p = {p}')
-    # print(f'q = {q}')
-    # assert p * q == n
+    # main()
+    n = 31356
+    start = time()
+    p, q = factor(n)
+    print(f'Elapsed time: {time() - start}')
+
+    print(f'p = {p}')
+    print(f'q = {q}')
+    assert p * q == n
