@@ -68,5 +68,4 @@ def test_valid_block_chain(ablockchain, trans):
 
 def test_invalid_block_chain(ablockchain, trans):
     valid, idx = ablockchain.add_block(trans).add_block(trans).add_wrong_block(trans).add_block(trans).verify()
-    assert idx == 3, f"The position of the invalid block should be 3 but was {idx}."
-    assert not valid, "The blockchain should be invalid but the verification says it's valid."
+    assert idx + 1 == 3, f"The position of the invalid block should be 3 but was {idx}."

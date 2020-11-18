@@ -57,20 +57,41 @@ class block:
         first_verification = self.previous_block_hash < 2 ** (256 - D)
         second_verification = self.transaction.verify()
         third_verification = self.block_hash < 2 ** (256 - D)
-        return first_verification and second_verification and third_verification
+        fourth_verification = self.verify_hash()
+        return first_verification and second_verification and third_verification and fourth_verification
+
+    def verify_hash(self):
+        entrada = str(self.previous_block_hash)
+        entrada = entrada + str(self.transaction.public_key.publicExponent)
+        entrada = entrada + str(self.transaction.public_key.modulus)
+        entrada = entrada + str(self.transaction.message)
+        entrada = entrada + str(self.transaction.signature)
+        entrada = entrada + str(self.seed)
+        h = int(hashlib.sha256(entrada.encode()).hexdigest(), 16)
+        return h == self.block_hash
 
     def generate_hash(self, wrong=False):
         """
         Assigna un seed al bloc i genera el seu hash (correcte per defecte).
         """
+        entrada = str(self.previous_block_hash)
+        entrada = entrada + str(self.transaction.public_key.publicExponent)
+        entrada = entrada + str(self.transaction.public_key.modulus)
+        entrada = entrada + str(self.transaction.message)
+        entrada = entrada + str(self.transaction.signature)
+
         if wrong:
             while True:
-                h = self.generate_preliminar_hash()
+                self.seed = randint(0, 2 ** 256)
+                entrada_final = entrada + str(self.seed)
+                h = int(hashlib.sha256(entrada_final.encode()).hexdigest(), 16)
                 if h >= 2 ** (256 - D):
                     break
         else:
             while True:
-                h = self.generate_preliminar_hash()
+                self.seed = randint(0, 2 ** 256)
+                entrada_final = entrada + str(self.seed)
+                h = int(hashlib.sha256(entrada_final.encode()).hexdigest(), 16)
                 if h < 2 ** (256 - D):
                     break
         self.block_hash = h

@@ -62,12 +62,14 @@ def generate_block_chain(output, limit=100, num_blocks=100):
     transactions = map(lambda i: transaction(messages[i], rsa), range(100))
     blockchain = block_chain(next(transactions))
 
-    for _ in range(1, limit):
+    for i in range(1, limit):
         blockchain.add_block(next(transactions))
+        print(f'Block {i} created')
 
     if limit < num_blocks:
-        for _ in range(limit, num_blocks):
+        for i in range(limit, num_blocks):
             blockchain.add_wrong_block(next(transactions))
+            print(f'Invalid block {i} created')
 
     Path(output_folder).mkdir(exist_ok=True)
     output_path = os.path.join(output_folder, output)
@@ -84,12 +86,12 @@ def generate_block_chain(output, limit=100, num_blocks=100):
 
 def create_valid_block_chain():
     print("Iniciando la creación de una cadena válida de 100 bloques.")
-    generate_block_chain("valid_block_chain.pickle")
+    generate_block_chain("valid_block_chain.block")
 
 
 def create_invalid_block_chain():
     print("Iniciando la creación de una cadena inválida de 100 bloques.")
-    generate_block_chain("invalid_block_chain.pickle", limit=39)
+    generate_block_chain("invalid_block_chain.block", limit=39)
 
 
 class Parte1:
@@ -98,26 +100,17 @@ class Parte1:
         print("Por favor introduzca una de las siguientes opciones:")
         while True:
             option = input("""\t(1) Crear una tabla comparatiba de la firma digital usando el TXR y sin usarlo
-        (2) Crear un blockchain válido de 100 bloques
-        (3) Crear un blockchain inválido de 100 bloques
-        (4) Realizar todas las tareas anteriores y pasar al apartado 2
-        (5) Realizar todas las tareas anteriores y salir del programa
-        (6) Saltar al apartado 2
-        (7) Salir del programa
+    (2) Crear un blockchain válido de 100 bloques
+    (3) Crear un blockchain inválido de 100 bloques
+    (4) Realizar todas las tareas anteriores y salir del programa
+    (5) Salir del programa
     """)
             if '4' == option:
                 create_comp_table()
                 create_valid_block_chain()
                 create_invalid_block_chain()
-                break
-            elif '5' == option:
-                create_comp_table()
-                create_valid_block_chain()
-                create_invalid_block_chain()
                 quit()
-            elif '6' == option:
-                break
-            elif '7' == option:
+            elif '5' == option:
                 quit()
             elif '1' == option:
                 create_comp_table()

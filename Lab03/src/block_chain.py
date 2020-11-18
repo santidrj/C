@@ -36,9 +36,12 @@ class block_chain:
         En qualsevol altre cas retorna el booleá False i fins a quin bloc la cadena és vàlida.
         """
         if not self.list_of_blocks[0].is_genesis():
-            return [False, 0]
+            return [False, -1]
 
         for idx, current_block in enumerate(self.list_of_blocks[1:], 1):
+            if current_block.previous_block_hash != self.list_of_blocks[idx - 1].block_hash:
+                return [False, idx - 1]
+
             if not current_block.verify_block():
-                return [False, idx]
-        return [True, -1]
+                return [False, idx - 1]
+        return [True, len(self.list_of_blocks) - 1]
