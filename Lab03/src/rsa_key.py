@@ -2,6 +2,7 @@ import math
 
 import sympy
 
+
 class rsa_key:
     def __init__(self, bits_modulo=2048, e=2 ** 16 + 1):
         """
@@ -20,7 +21,6 @@ class rsa_key:
         self.privateExponentModulusPhiP = self.privateExponent % (self.primeP - 1)
         self.privateExponentModulusPhiQ = self.privateExponent % (self.primeQ - 1)
         self.inverseQModulusP = sympy.mod_inverse(self.primeQ, self.primeP)
-        self.Q = self.inverseQModulusP * self.primeQ
 
     def p_and_q_coprimes_with_e(self):
         """
@@ -36,7 +36,8 @@ class rsa_key:
         c_1 = pow(message, self.privateExponentModulusPhiP, self.primeP)
         c_2 = pow(message, self.privateExponentModulusPhiQ, self.primeQ)
 
-        return (c_1 * self.Q + c_2 * (1 - self.Q)) % self.modulus
+        return (c_1 * self.inverseQModulusP * self.primeQ + c_2 * (
+                    1 - self.inverseQModulusP * self.primeQ)) % self.modulus
 
     def sign_slow(self, message):
         """
