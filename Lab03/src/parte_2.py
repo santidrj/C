@@ -12,7 +12,7 @@ from sqrt_long_division import sqrt_long_division
 output_path = '../outputs'
 rw_input_path = '../RSA_RW'
 pseudo_input_path = '../RSA_pseudo'
-student = 'santiago.del.rey'
+student = 'enric.hernando'
 
 
 def decrypt_RW(rsa_key, encrypted_aes_key, encrypted_file):
