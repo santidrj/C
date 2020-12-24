@@ -1,0 +1,4 @@
+1. El CRL contiene 6896 certificados revocados. 
+El número de certificados revocados se ha obtenido con el siguiente comando: $ grep "Revocation Date" crl.txt | wc -l
+
+2. El estado del certificado es "good" y es válido hasta Dec 17 17:35:59 2020 GMT

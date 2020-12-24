@@ -1,0 +1,46 @@
+OCSP Request Data:
+    Version: 1 (0x0)
+    Requestor List:
+        Certificate ID:
+          Hash Algorithm: sha1
+          Issuer Name Hash: 1175295285B7738D52A8E3508FB390C5EEC7D46A
+          Issuer Key Hash: 67FD8820142798C709D22519BBE9511163755062
+          Serial Number: 08476C88FD62CE503FAAC820D9467380
+    Request Extensions:
+        OCSP Nonce: 
+            04100119A59EE0C2FC231E634F0D2E0CC206
+OCSP Response Data:
+    OCSP Response Status: successful (0x0)
+    Response Type: Basic OCSP Response
+    Version: 1 (0x0)
+    Responder Id: 67FD8820142798C709D22519BBE9511163755062
+    Produced At: Dec 10 18:20:59 2020 GMT
+    Responses:
+    Certificate ID:
+      Hash Algorithm: sha1
+      Issuer Name Hash: 1175295285B7738D52A8E3508FB390C5EEC7D46A
+      Issuer Key Hash: 67FD8820142798C709D22519BBE9511163755062
+      Serial Number: 08476C88FD62CE503FAAC820D9467380
+    Cert Status: good
+    This Update: Dec 10 18:20:59 2020 GMT
+    Next Update: Dec 17 17:35:59 2020 GMT
+
+    Signature Algorithm: sha256WithRSAEncryption
+         71:77:29:59:fc:90:d9:ba:2a:de:fe:17:26:76:ab:00:e8:19:
+         f7:e9:1f:00:68:d9:37:7f:80:bb:94:a9:c3:5c:73:bb:2a:d3:
+         e7:7f:55:f4:28:97:2f:79:0d:73:ef:87:09:46:54:88:76:ee:
+         c4:bc:6a:03:aa:e0:1f:07:f5:92:45:3a:f4:5f:96:1c:e2:4d:
+         c9:54:d8:71:62:e9:1c:cf:74:94:2c:a7:7e:62:16:f9:76:73:
+         85:c0:7d:79:9c:54:4d:47:9a:85:13:d9:1d:8a:a2:49:0d:ef:
+         bd:4e:60:11:ad:c3:95:81:e6:d0:68:35:46:7d:f9:de:6a:01:
+         35:91:6b:8e:a4:06:83:70:00:e2:36:43:f3:b5:3f:42:9b:6f:
+         c5:a2:0d:4c:04:a0:4a:4d:6a:a8:e4:8c:6d:0f:e2:e7:53:a6:
+         e7:dd:64:51:e0:77:d8:8e:21:15:6b:3d:da:ef:f7:33:9a:d3:
+         47:76:15:ee:f2:c6:0f:ec:60:93:ca:c8:f1:d2:12:8b:0f:09:
+         8a:a5:95:f8:bd:0e:f5:e3:a8:20:40:bb:16:d6:11:70:64:e6:
+         e7:49:45:8c:6d:f0:21:f0:eb:9e:5d:e2:e5:3f:5c:c6:4e:57:
+         3b:d7:2f:e6:5a:d1:e8:38:d8:22:89:84:e9:cb:6e:f1:08:14:
+         ab:6e:28:9b
+www-fib-upc-edu.pem: good
+	This Update: Dec 10 18:20:59 2020 GMT
+	Next Update: Dec 17 17:35:59 2020 GMT
